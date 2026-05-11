@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phiếu học tập tương tác - Giải mã mật mã</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Times New Roman", serif;
+      background: #f3f7ff;
+      color: #111;
+    }
+    .page {
+      width: calc(100vw - 24px);
+      min-height: calc(100vh - 24px);
+      margin: 10px auto;
+      padding: 20px 24px;
+      background: white;
+      border: 2px solid #1e5bb8;
+      border-radius: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .group {
+      background: #e91e63;
+      color: white;
+      font: 700 28px Arial, sans-serif;
+      padding: 12px 46px 12px 28px;
+      clip-path: polygon(0 0, 100% 0, 88% 50%, 100% 100%, 0 100%);
+      letter-spacing: 1px;
+    }
+    .title {
+      font: 900 48px Arial, sans-serif;
+      color: #d71920;
+      text-shadow: 2px 2px 0 #111;
+      letter-spacing: 6px;
+    }
+    .icons { font-size: 42px; white-space: nowrap; }
+    .layout {
+      display: grid;
+      grid-template-columns: 42% 58%;
+      gap: 20px;
+      align-items: start;
+    }
+    .left, .right {
+      border-radius: 18px;
+    }
+    .secret-box {
+      border: 2px dashed #ff3b3b;
+      border-radius: 34px;
+      padding: 20px 18px;
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .lock { font-size: 58px; text-align: center; }
+    .instruction {
+      text-align: center;
+      font: 700 23px Arial, sans-serif;
+      line-height: 1.35;
+      margin-bottom: 16px;
+    }
+    .secret-cells {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+    .secret-cell {
+      width: 58px;
+      height: 58px;
+      border: 2px dashed #ff3b3b;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font: 900 30px Arial, sans-serif;
+      color: #d71920;
+      background: #fff;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      border: 1px solid #222;
+      background: #222;
+      gap: 1px;
+      width: 100%;
+    }
+    .cell {
+      height: 44px;
+      display: grid;
+      place-items: center;
+      background: white;
+      font: 700 26px "Times New Roman", serif;
+      transition: 0.2s;
+    }
+    .cell.highlight {
+      background: #ffeb3b;
+      box-shadow: inset 0 0 0 2px #f59e0b;
+    }
+    .questions {
+      border: 2px solid #1e5bb8;
+      border-radius: 18px;
+      padding: 16px 20px;
+      min-height: 565px;
+    }
+    .q {
+      display: grid;
+      grid-template-columns: 1fr 58px;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 19px;
+    }
+    .q:last-child { margin-bottom: 0; }
+    .q-title {
+      font-size: 20px;
+      line-height: 1.35;
+      margin-bottom: 8px;
+    }
+    .q-title b { color: #064db3; font-family: Arial, sans-serif; }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(100px, 1fr));
+      gap: 10px 18px;
+      font-size: 19px;
+      align-items: center;
+    }
+    .option {
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 6px 7px;
+      cursor: pointer;
+      transition: 0.15s;
+      background: #fff;
+    }
+    .option:hover {
+      background: #eaf2ff;
+      border-color: #1e5bb8;
+    }
+    .option.selected {
+      background: #ffeb3b;
+      border-color: #f59e0b;
+      font-weight: 700;
+    }
+    .answer-slot {
+      width: 52px;
+      height: 52px;
+      border: 2px dashed #1e5bb8;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font: 900 28px Arial, sans-serif;
+      color: #d71920;
+      background: #fff;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 22px;
+      font: 700 16px Arial, sans-serif;
+      cursor: pointer;
+      background: #1e5bb8;
+      color: white;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+    }
+    button.secondary { background: #e91e63; }
+    .note {
+      text-align: center;
+      margin-top: 10px;
+      font: 16px Arial, sans-serif;
+      color: #555;
+    }
+    @media print {
+      body { background: white; }
+      .page { margin: 0; width: 100%; border-radius: 0; }
+      .controls, .note { display: none; }
+      .option { cursor: default; }
+    }
+  </style>
+</head>
+<body>
+  <audio id="soundCorrect" src="dung.mp3" preload="auto"></audio>
+  <audio id="soundWrong" src="sai.mp3" preload="auto"></audio>
+
+  <main class="page">
+    <section class="topbar">
+      <div class="group">NHÓM..........</div>
+      <div class="title">GIẢI MÃ MẬT MÃ</div>
+      <div class="icons">🔒 ✨ 🧪</div>
+    </section>
+
+    <section class="layout">
+      <div class="left">
+        <div class="secret-box">
+          <div class="lock">🔐</div>
+          <div>
+            <div class="instruction">Sắp xếp các đáp án đúng theo thứ tự Câu 1 → Câu 6<br>để tìm ra từ khóa bí mật.</div>
+            <div class="secret-cells" id="secretCells"></div>
+          </div>
+        </div>
+
+        <div class="grid" id="letterGrid"></div>
+      </div>
+
+      <div class="right">
+        <div class="questions" id="questions"></div>
+      </div>
+    </section>
+
+    <div class="controls">
+      <button onclick="checkKeyword()">Kiểm tra từ khóa</button>
+      <button class="secondary" onclick="resetGame()">Làm lại</button>
+    </div>
+    <div class="note">Mẹo: Chọn đáp án ở từng câu, hệ thống sẽ tự tô vàng tất cả chữ cái tương ứng trong bảng bên trái.</div>
+  </main>
+
+  <script>
+    const gridData = [
+      ["Q","L","B","G","B","V","D","S","P","K","W","M","F","S","L","B","Q"],
+      ["I","A","A","K","J","E","P","A","S","R","N","P","L","C","C","C","I"],
+      ["P","C","B","T","B","E","D","A","P","A","W","T","F","R","T","R","P"],
+      ["Q","C","L","T","V","E","M","C","Q","A","F","T","K","U","T","V","Q"],
+      ["B","C","U","O","L","O","O","O","V","N","E","E","U","U","T","L","B"],
+      ["Q","O","V","O","Q","O","S","N","P","E","W","T","L","V","A","Q","F"],
+      ["L","O","R","A","J","O","M","N","C","E","Y","A","D","S","E","J","L"],
+      ["S","O","M","A","Z","O","B","N","D","E","F","A","P","X","E","Z","P"],
+      ["M","S","Q","B","I","D","F","J","K","M","I","B","P","Q","R","I","M"]
+    ];
+
+    const questions = [
+      {
+        id: 7,
+        text: "Tên thay thế của CH₃CH₂COOH là",
+        answer: "A",
+        options: [
+          ["K", "ethanoic acid"],
+          ["A", "propanoic acid"],
+          ["M", "butanoic acid"],
+          ["A", "pentanoic acid"]
+        ]
+      },
+      {
+        id: 8,
+        text: "Tên thay thế của CH₃CH₂CH₂COOH là",
+        answer: "C",
+        options: [
+          ["C", "butanoic acid"],
+          ["G", "propanoic acid"],
+          ["L", "pentanoic acid"],
+          ["M", "ethanoic acid"]
+        ]
+      },
+      {
+        id: 9,
+        text: "Trong phân tử carboxylic acid, nguyên tử hydrogen trong nhóm –OH trở nên linh động vì",
+        answer: "E",
+        options: [
+          ["E", "liên kết O–H phân cực mạnh"],
+          ["A", "liên kết C–C yếu"],
+          ["H", "phân tử không phân cực"],
+          ["K", "có liên kết ion"]
+        ]
+      },
+      {
+        id: 10,
+        text: "Nguyên nhân chủ yếu làm cho nhiệt độ sôi của carboxylic acid cao là",
+        answer: "T",
+        options: [
+          ["A", "khối lượng phân tử lớn"],
+          ["T", "có liên kết hydrogen dạng dimer giữa các phân tử"],
+          ["T", "có liên kết ion"],
+          ["K", "có liên kết kim loại"]
+        ]
+      },
+      {
+        id: 11,
+        text: "Trong các chất sau, chất có nhiệt độ sôi cao nhất là",
+        answer: "O",
+        options: [
+          ["Y", "C₂H₆"],
+          ["N", "CH₃CHO"],
+          ["H", "C₂H₅OH"],
+          ["O", "CH₃COOH"]
+        ]
+      },
+      {
+        id: 12,
+        text: "Formic acid, acetic acid và propionic acid tan tốt trong nước do",
+        answer: "N",
+        options: [
+          ["K", "tạo muối với nước"],
+          ["N", "tạo liên kết hydrogen với nước"],
+          ["N", "phản ứng với nước"],
+          ["C", "có liên kết ion"]
+        ]
+      },
+      {
+        id: 13,
+        text: "Dung dịch carboxylic acid làm quỳ tím",
+        answer: "E",
+        options: [
+          ["h", "chuyển sang màu xanh"],
+          ["E", "chuyển sang màu đỏ"],
+          ["C", "không đổi màu"],
+          ["g", "chuyển sang màu vàng"]
+        ]
+      }
+    ];
+
+    const selectedAnswers = {};
+
+    function renderSecretCells() {
+      const box = document.getElementById("secretCells");
+      box.innerHTML = "";
+      questions.forEach(q => {
+        const div = document.createElement("div");
+        div.className = "secret-cell";
+        div.id = `secret-${q.id}`;
+        box.appendChild(div);
+      });
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById("letterGrid");
+      grid.style.gridTemplateColumns = `repeat(${gridData[0].length}, 1fr)`;
+      grid.innerHTML = "";
+
+      gridData.flat().forEach(letter => {
+        const div = document.createElement("div");
+        div.className = "cell";
+        div.dataset.letter = letter;
+        div.textContent = letter;
+        grid.appendChild(div);
+      });
+    }
+
+    function renderQuestions() {
+      const container = document.getElementById("questions");
+      container.innerHTML = "";
+
+      questions.forEach(q => {
+        const wrap = document.createElement("div");
+        wrap.className = "q";
+
+        wrap.innerHTML = `
+          <div>
+            <div class="q-title"><b>Câu ${q.id}.</b> ${q.text}</div>
+            <div class="options">
+              ${q.options.map(([letter, content]) => `
+                <div class="option" data-question="${q.id}" onclick="selectAnswer(${q.id}, '${letter}', this)">
+                  <b>${letter}.</b> ${content}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="answer-slot" id="slot-${q.id}"></div>
+        `;
+
+        container.appendChild(wrap);
+      });
+    }
+
+    function selectAnswer(questionId, letter, clickedElement) {
+      selectedAnswers[questionId] = letter;
+
+      document.getElementById(`slot-${questionId}`).textContent = letter;
+      document.getElementById(`secret-${questionId}`).textContent = letter;
+
+      document.querySelectorAll(`.option[data-question="${questionId}"]`).forEach(opt => {
+        opt.classList.remove('selected');
+      });
+      if (clickedElement) clickedElement.classList.add('selected');
+
+      const currentQuestion = questions.find(q => q.id === questionId);
+      if (currentQuestion && letter === currentQuestion.answer) {
+        playSound('dung');
+      } else {
+        playSound('sai');
+      }
+
+      updateHighlights();
+    }
+
+    function playSound(type) {
+      const audio = document.getElementById(type === 'dung' ? 'soundCorrect' : 'soundWrong');
+      if (!audio) return;
+
+      audio.pause();
+      audio.currentTime = 0;
+      audio.play().catch(() => {
+        console.log('Trình duyệt đang chặn âm thanh cho đến khi có thao tác của người dùng.');
+      });
+    }
+
+    function updateHighlights() {
+      const activeLetters = Object.values(selectedAnswers);
+
+      document.querySelectorAll('.cell').forEach(cell => {
+        if (activeLetters.includes(cell.dataset.letter)) {
+          cell.classList.add('highlight');
+        } else {
+          cell.classList.remove('highlight');
+        }
+      });
+    }
+
+    function checkKeyword() {
+      const keyword = questions.map(q => selectedAnswers[q.id] || '_').join('');
+
+      if (keyword === 'ACETONE') {
+        alert('🎉 Chính xác! Từ khóa là: ACETONE');
+      } else {
+        alert('Từ khóa hiện tại: ' + keyword);
+      }
+    }
+
+    function resetGame() {
+
+  // Xóa chỉ những câu làm sai
+  questions.forEach(q => {
+
+    const userAnswer = selectedAnswers[q.id];
+
+    // Nếu đáp án sai thì mới reset
+    if (userAnswer && userAnswer !== q.answer) {
+
+      delete selectedAnswers[q.id];
+
+      // Xóa ô đáp án bên phải
+      document.getElementById(`slot-${q.id}`).textContent = '';
+
+      // Xóa ô từ khóa bên trái
+      document.getElementById(`secret-${q.id}`).textContent = '';
+
+      // Bỏ chọn option
+      document.querySelectorAll(`.option[data-question="${q.id}"]`)
+        .forEach(opt => opt.classList.remove('selected'));
+    }
+  });
+
+  // Cập nhật lại màu tô
+  updateHighlights();
+}function resetGame() {
+
+  // Xóa chỉ những câu làm sai
+  questions.forEach(q => {
+
+    const userAnswer = selectedAnswers[q.id];
+
+    // Nếu đáp án sai thì mới reset
+    if (userAnswer && userAnswer !== q.answer) {
+
+      delete selectedAnswers[q.id];
+
+      // Xóa ô đáp án bên phải
+      document.getElementById(`slot-${q.id}`).textContent = '';
+
+      // Xóa ô từ khóa bên trái
+      document.getElementById(`secret-${q.id}`).textContent = '';
+
+      // Bỏ chọn option
+      document.querySelectorAll(`.option[data-question="${q.id}"]`)
+        .forEach(opt => opt.classList.remove('selected'));
+    }
+  });
+
+  // Cập nhật lại màu tô
+  updateHighlights();
+}
+
+    renderSecretCells();
+    renderGrid();
+    renderQuestions();
+  </script>
+</body>
+</html>
